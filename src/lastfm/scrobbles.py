@@ -4,6 +4,7 @@ import pandas as pd
 
 from src import setup
 from src.lastfm import base
+from src import utils
 
 # scrobble
 
@@ -24,16 +25,6 @@ def get_total_pages():
     response = get_history()
     return int(response.json()['recenttracks']['@attr']['totalPages'])
 
-def recurGet_core(d, ks): 
-    head, *tail = ks 
-    return recurGet(d.get(head, {}), tail) if tail else d.get(head)
-
-def recurGet(d, ks):
-    result = recurGet_core(d, ks)
-    if result == '':
-        result = None
-    return result
-
 json_extract = {
     "date": ["date", "uts"],
     "artist": ["artist", "#text"],
@@ -53,7 +44,7 @@ def extract_page(response):
     
     records = list()
     for s in scrobbles:
-        records.append([recurGet(s, i) for i in json_extract.values()])
+        records.append([utils.recurGet(s, i) for i in json_extract.values()])
         
     df = pd.DataFrame(records, 
                       columns=json_extract.keys())
