@@ -20,7 +20,7 @@ def main():
             df = scrobbles.extract_page(response)
             sql.insert_to_sqlite(df, "scrobbles")
             if datetime.datetime.strptime(df.date.min(), "%Y-%m-%d %H:%M:%S") < last_timestamp:
-                logging.info("no new data")
+                logging.info("no more new data")
                 break
             else:
                 time.sleep(0.5)
