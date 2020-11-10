@@ -18,7 +18,7 @@ def main():
         try:
             response = scrobbles.get_history(page=p+1)
             df = scrobbles.extract_page(response)
-            sql.insert_to_sqlite(df)
+            sql.insert_to_sqlite(df, "scrobbles")
             if datetime.datetime.strptime(df.date.min(), "%Y-%m-%d %H:%M:%S") < last_timestamp:
                 logging.info("no new data")
                 break
