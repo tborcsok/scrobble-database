@@ -6,6 +6,7 @@ from tqdm import tqdm
 
 from src.lastfm import scrobbles
 from src import sql
+from src import utils
 
 def main():
 
@@ -19,7 +20,7 @@ def main():
             df = scrobbles.extract_page(response)
             sql.insert_to_sqlite(df)
             if datetime.datetime.strptime(df.date.min(), "%Y-%m-%d %H:%M:%S") < last_timestamp:
-                print("no new data")
+                logging.info("no new data")
                 break
             else:
                 time.sleep(0.5)
@@ -29,5 +30,6 @@ def main():
             try_again.append(p+1)
 
 if __name__ == '__main__':
+    utils.custom_logger()
     main()
         
