@@ -22,7 +22,7 @@ def main():
     df = pd.DataFrame(records, 
                         columns=["artist_id", "listeners", "playcount", "created"])
 
-    sql.insert_to_sqlite(df, "artists")
+    sql.upsert_to_sqlite(df, "artists", unique_col='artist_id')
 
 if __name__=='__main__':
     utils.custom_logger()
