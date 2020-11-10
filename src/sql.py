@@ -3,10 +3,26 @@ import sqlite3
 import logging
 import datetime
 
+import pandas as pd
+
 from src.setup import db_file_path
 
-def insert_to_sqlite(df):
+def connect_to_db():
     conn = sqlite3.connect(db_file_path)
+    return conn
+
+def sql_query(query):
+    conn = connect_to_db()
+    try:
+        df = pd.read_sql(query, conn)
+    except:
+        df = None
+    finally:
+        conn.close()
+    return df
+
+def insert_to_sqlite(df):
+    conn = connect_to_db()
     c = conn.cursor()
     try:
         c.executemany(f"""
@@ -21,7 +37,7 @@ def insert_to_sqlite(df):
         conn.close()
 
 def get_last_scrobble_datetime():
-    conn = sqlite3.connect(db_file_path)
+    conn = connect_to_db()
     c = conn.cursor()
     try:
         c.execute("select max(datetime(date)) from scrobbles")
