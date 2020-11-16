@@ -1,5 +1,6 @@
 import logging
 import time
+from typing import final
 from tqdm import tqdm
 import pandas as pd
 
@@ -11,12 +12,19 @@ def main():
     artists_list = sql.sql_query('select distinct artist_id from scrobbles').dropna().artist_id.values
 
     records = list()
+    errors = list()
     logging.info('Getting artists')
     for a in tqdm(artists_list):
-        response, download_time = artists.get_artist(a)
-        record = [a] + artists.extract_artist(response) + [download_time]
-        records.append(record)
-        time.sleep(0.5)
+        try:
+            response, download_time = artists.get_artist(a)
+            record = [a] + artists.extract_artist(response) + [download_time]
+            records.append(record)
+        except KeyboardInterrupt:
+            break
+        except:
+            errors.append(a)
+        finally:
+            time.sleep(0.5)
 
     logging.info('Inserting to DB')
     df = pd.DataFrame(records, 
