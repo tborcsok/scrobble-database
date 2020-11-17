@@ -4,6 +4,7 @@ import logging
 import datetime
 
 import pandas as pd
+import pytz
 
 from src.setup import db_file_path
 
@@ -60,6 +61,7 @@ def get_last_scrobble_datetime():
         c.execute("select max(datetime(date)) from scrobbles")
         max_date = c.fetchone()[0]
         max_date = datetime.datetime.strptime(max_date, "%Y-%m-%d %H:%M:%S")
+        max_date = pytz.UTC.localize(max_date)
     except:
         logging.error("error, closing connection", exc_info=True)
     finally:
