@@ -67,4 +67,5 @@ def get_last_scrobble_datetime():
     finally:
         c.close()
         conn.close()
+    logging.info(f'Last scrobble datetime in local DB: {max_date}')
     return max_date
