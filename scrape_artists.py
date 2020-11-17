@@ -17,11 +17,12 @@ def main():
     for a in tqdm(artists_list):
         try:
             response, download_time = artists.get_artist(a)
-            record = [a] + artists.extract_artist(response) + [download_time]
+            record = artists.extract_artist(response, a, download_time)
             records.append(record)
         except KeyboardInterrupt:
             break
         except:
+            logging.error('Error', exc_info=True)
             errors.append(a)
         finally:
             time.sleep(0.5)

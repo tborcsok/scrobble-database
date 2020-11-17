@@ -23,13 +23,14 @@ json_extract = {
     "playcount": ["stats", "playcount"]
 }
 
-def extract_artist(response):
+def extract_artist(response, a, download_time):
     if "error" in response.json().keys():
-        return [None for i in json_extract.keys()]
+        empty_stats = [None for i in json_extract.keys()]
+        return [a] + empty_stats + [download_time]
     else:
         artist = response.json()["artist"]
 
         stats = [utils.recurGet(artist, i) for i in json_extract.values()]
 
-        return stats
+        return [a] + stats + [download_time]
 
