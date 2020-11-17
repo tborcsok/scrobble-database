@@ -6,7 +6,7 @@ from src import setup
 
 def lastfm_get(payload):
     """Base request"""
-    logging.info(f'Request with params:\n{payload}')
+    logging.debug(f'Request with params:\n{payload}')
 
     # define headers and URL
     headers = {'user-agent': setup.LASTFM_API_USER}
