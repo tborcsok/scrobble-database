@@ -1,9 +1,13 @@
+import logging
+
 import requests
 
 from src import setup
 
 def lastfm_get(payload):
     """Base request"""
+    logging.info(f'Request with params:\n{payload}')
+
     # define headers and URL
     headers = {'user-agent': setup.LASTFM_API_USER}
     url = 'http://ws.audioscrobbler.com/2.0/'
