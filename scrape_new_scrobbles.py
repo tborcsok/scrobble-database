@@ -1,5 +1,4 @@
 import time
-import datetime
 import logging
 
 from tqdm import tqdm
@@ -19,12 +18,10 @@ def main():
             response = scrobbles.get_history(page=p+1, from_ts=last_timestamp)
             df = scrobbles.extract_page(response)
             sql.insert_to_sqlite(df, "scrobbles")
-            if datetime.datetime.strptime(df.date.min(), "%Y-%m-%d %H:%M:%S") < last_timestamp:
-                logging.info("no more new data")
-                break                
         except KeyboardInterrupt:
             break
         except:
+            logging.error('Error', exc_info=True)
             errors.append(p+1)
         finally:
             time.sleep(0.5)
