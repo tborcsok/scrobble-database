@@ -16,7 +16,7 @@ def main():
     logging.info('Getting artists')
     for a in tqdm(artists_list):
         try:
-            response, download_time = artists.get_artist(a)
+            response, download_time = artists.get_artist_info(a)
             record = artists.extract_artist(response, a, download_time)
             records.append(record)
         except KeyboardInterrupt:

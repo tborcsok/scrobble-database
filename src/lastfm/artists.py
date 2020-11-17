@@ -8,7 +8,7 @@ from src import utils
 
 # scrobble
 
-def get_artist(mbid):
+def get_artist_info(mbid):
     params = {
         "method": "artist.getInfo",
         "mbid": mbid
