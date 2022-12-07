@@ -1,6 +1,6 @@
+.env
+poetry.lock
+
 __pycache__
 .ipynb_checkpoints
-src/.env
-data
-poetry.lock
-.env
+.mypy_cache

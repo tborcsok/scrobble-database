@@ -5,11 +5,11 @@ import sqlite3
 import pandas as pd
 import pytz
 
-from src.setup import db_file_path
+from src import setup
 
 
 def connect_to_db():
-    conn = sqlite3.connect(db_file_path)
+    conn = sqlite3.connect(setup.db_file_path)
     return conn
 
 

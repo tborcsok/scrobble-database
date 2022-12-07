@@ -1,5 +1,5 @@
-import calendar
 import logging
+from datetime import datetime as dt
 
 
 def custom_logger():
@@ -22,14 +22,14 @@ def recurGet(d, ks):
     return result
 
 
-def dt2ts(dt, addone=False):
+def dt2ts(dt: dt, addone: bool =False):
     """Converts a datetime object to UTC timestamp
 
     naive datetime will be considered UTC.
 
     optional: add 1 to timestamp
     """
-    timestamp = calendar.timegm(dt.utctimetuple())
+    timestamp = dt.timestamp()
     if addone:
         timestamp = timestamp + 1
     return timestamp
