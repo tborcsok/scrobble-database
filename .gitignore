@@ -3,3 +3,4 @@ __pycache__
 src/.env
 data
 poetry.lock
+.env

@@ -3,6 +3,7 @@ import time
 from typing import final
 
 import pandas as pd
+from dotenv import load_dotenv
 from tqdm import tqdm
 
 from src import sql, utils
@@ -41,5 +42,7 @@ def main():
 
 
 if __name__ == "__main__":
+    load_dotenv()
+
     utils.custom_logger()
     main()

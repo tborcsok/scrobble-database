@@ -1,11 +1,11 @@
-import time
 import logging
+import time
 
+from dotenv import load_dotenv
 from tqdm import tqdm
 
+from src import sql, utils
 from src.lastfm import scrobbles
-from src import sql
-from src import utils
 
 
 def main():
@@ -31,5 +31,7 @@ def main():
 
 
 if __name__ == "__main__":
+    load_dotenv()
+
     utils.custom_logger()
     main()
