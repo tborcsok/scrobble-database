@@ -1,8 +1,10 @@
 import logging
 from datetime import datetime as dt
+from typing import Optional
 
 
 def custom_logger():
+    """Setup logging"""
     logging.basicConfig(
         format="%(levelname)s:%(asctime)s:%(message)s",
         level=logging.INFO,
@@ -22,14 +24,14 @@ def recurGet(d, ks):
     return result
 
 
-def dt2ts(dt: dt, addone: bool =False):
+def dt2ts(datetime: dt, addone: bool = False) -> float:
     """Converts a datetime object to UTC timestamp
 
     naive datetime will be considered UTC.
 
     optional: add 1 to timestamp
     """
-    timestamp = dt.timestamp()
+    timestamp = datetime.timestamp()
     if addone:
         timestamp = timestamp + 1
     return timestamp
