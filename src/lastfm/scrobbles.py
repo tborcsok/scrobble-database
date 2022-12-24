@@ -35,6 +35,7 @@ def get_history(page: Optional[int] = None, from_ts: Optional[dt] = None) -> Res
         "user": setup.LASTFM_API_USER,
         "limit": 200,
         "extended": 0,
+        "to": dt.now().timestamp(),
     }
     if page is not None:
         params["page"] = page
