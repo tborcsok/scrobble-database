@@ -3,10 +3,13 @@ from time import sleep
 from typing import Dict, Union
 
 import requests
+from joblib import Memory
 
-from src import setup
+from src import exceptions, setup
 
 RequestParams = Dict[str, Union[str, int, float]]
+
+memory = Memory("./cache", verbose=0)
 
 
 def lastfm_get(params: RequestParams) -> requests.Response:
@@ -25,4 +28,13 @@ def lastfm_get(params: RequestParams) -> requests.Response:
     sleep(1)
     response.raise_for_status()
 
+    if "error" in response.json():
+        raise exceptions.LastfmError("Request error %s" % response.json())
+
     return response
+
+
+@memory.cache
+def lastfm_get_w_caching(*args, **kwargs):
+    res = lastfm_get(*args, **kwargs)
+    return res
