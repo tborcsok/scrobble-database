@@ -1,62 +1,71 @@
-import datetime
 import logging
+from datetime import datetime as dt
+from typing import List, NamedTuple, Optional
 
-import pandas as pd
+from requests import Response
 
-from src import setup, utils
+from src import setup, sql
 from src.lastfm import base
 
 # scrobble
 
 
-def get_history(page=None, from_ts=None):
-    """Get response from user.getRecentTracks service
-
-    Params
-    ----------
-        page (int): page number to fetch optional
-        from_ts (datetime.date, tw-aware): beginning timestamp of time range
-    """
-    params = {
-        "method": "user.getRecentTracks",
-        "user": setup.LASTFM_API_USER,
-        "limit": 200,
-        "extended": 0,
-    }
-    if page is not None:
-        params["page"] = page
-    if from_ts is not None:
-        params["from"] = utils.dt2ts(from_ts, addone=True)
-
-    response = base.lastfm_get(params)
-    return response
+class HistoryItem(NamedTuple):
+    date: str
+    artist: str
+    album: str
+    track: str
+    artist_id: Optional[str]
+    album_id: Optional[str]
+    track_id: Optional[str]
 
 
-def get_total_pages(from_ts=None):
+def get_total_pages() -> int:
     """Get number of total pages of scrobble history
 
     Parameters
     ----------
-        from_ts (datetime.date, tw-aware): beginning timestamp of time range
+        from_ts: beginning timestamp of time range, UTC
     """
-    response = get_history(from_ts=from_ts)
+    response = get_scrobbles_page()
     totalpages = int(response.json()["recenttracks"]["@attr"]["totalPages"])
-    logging.info(f"Total pages of scrobbles: {totalpages}")
+    logging.info("Total pages of scrobbles: %s", totalpages)
     return totalpages
 
 
-json_extract = {
-    "date": ["date", "uts"],
-    "artist": ["artist", "#text"],
-    "album": ["album", "#text"],
-    "track": ["name"],
-    "artist_id": ["artist", "mbid"],
-    "album_id": ["album", "mbid"],
-    "track_id": ["mbid"],
-}
+def etl_scrobbles_page(page: int) -> dt:
+    response = get_scrobbles_page(page=page)
+    records = extract_scrobbles_page(response)
+    sql.insert_to_scrobbles(records)
+
+    last_timestamp_page = dt.fromtimestamp(min(int(r.date) for r in records))
+
+    return last_timestamp_page
 
 
-def extract_page(response):
+def get_scrobbles_page(page: Optional[int] = None) -> Response:
+    """Get response from user.getRecentTracks service
+
+    Params
+    ----------
+        page: page number to fetch
+    """
+    params: base.RequestParams = {
+        "method": "user.getRecentTracks",
+        "user": setup.LASTFM_API_USER,
+        "limit": 200,
+        "extended": 0,
+        "to": dt.now().timestamp(),
+    }
+    if page is not None:
+        params["page"] = page
+
+    response = base.lastfm_get(params)
+
+    return response
+
+
+def extract_scrobbles_page(response: Response) -> List[HistoryItem]:
     scrobbles = response.json()["recenttracks"]["track"]
     # skip 'Now Playing' track if it is included in response
     if (
@@ -65,15 +74,18 @@ def extract_page(response):
     ):
         scrobbles = scrobbles[1:]
 
-    records = list()
+    records = []
     for s in scrobbles:
-        records.append([utils.recurGet(s, i) for i in json_extract.values()])
-
-    df = pd.DataFrame(records, columns=json_extract.keys())
-    df["date"] = df["date"].apply(
-        lambda x: datetime.datetime.utcfromtimestamp(int(x)).strftime(
-            "%Y-%m-%d %H:%M:%S"
+        records.append(
+            HistoryItem(
+                date=s["date"]["uts"],
+                artist=s["artist"]["#text"],
+                album=s["album"]["#text"],
+                track=s["name"],
+                artist_id=s["artist"]["mbid"],
+                album_id=s["album"]["mbid"],
+                track_id=s["mbid"],
+            )
         )
-    )
 
-    return df
+    return records

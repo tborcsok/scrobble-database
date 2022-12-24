@@ -1,79 +1,52 @@
-import datetime
-import logging
-import sqlite3
+from typing import Any, List
 
 import pandas as pd
-import pytz
+import psycopg2
+from psycopg2.extensions import connection
 
-from src.setup import db_file_path
+from src import setup
+from src.lastfm import scrobbles
 
 
-def connect_to_db():
-    conn = sqlite3.connect(db_file_path)
+def connect_to_db() -> connection:
+
+    conn = psycopg2.connect(dbname="postgres", user="postgres", password=setup.PG_PASSWORD, host="localhost")
+
     return conn
 
 
-def sql_query(query):
-    conn = connect_to_db()
-    try:
+def sql_query(query: str) -> pd.DataFrame:
+    """Return query result in a dataframe"""
+
+    with connect_to_db() as conn:
         df = pd.read_sql(query, conn)
-    except:
-        df = None
-    finally:
-        conn.close()
+
     return df
 
 
-def insert_to_sqlite(df, table):
+def sql_fetchone(query: str) -> Any:
+    with connect_to_db() as conn:
+        with conn.cursor() as c:
+            c.execute(query)
+            res = c.fetchone()
+            return res
+
+
+def insert_to_scrobbles(records=List[scrobbles.HistoryItem]):
+    """Insert data to scrobbles table"""
     conn = connect_to_db()
     c = conn.cursor()
-    try:
-        c.executemany(
-            f"""
-            INSERT OR IGNORE INTO {table} ({", ".join([f"'{i}'" for i in df.columns])}) 
-            VALUES({(len(df.columns)*"? ")[:-1].replace(" ", ",")})""",
-            list(df.to_records(index=False)),
-        )
-        conn.commit()
-    except:
-        logging.error("error, closing connection", exc_info=True)
-    finally:
-        c.close()
-        conn.close()
+    c.executemany(
+        (
+            "insert into dw.scrobbles(date, artist, album, track, artist_id, album_id, track_id) "
+            "values(to_timestamp(%s), %s, %s, %s, %s, %s, %s) "
+            "on conflict on constraint scrobbles_pkey do update set "
+            "artist=EXCLUDED.artist, album=EXCLUDED.album, track=EXCLUDED.track, "
+            "artist_id=EXCLUDED.artist_id, album_id=EXCLUDED.album_id, track_id=EXCLUDED.track_id "
+        ),
+        records,
+    )
+    conn.commit()
 
-
-def upsert_to_sqlite(df, table, unique_col):
-    conn = connect_to_db()
-    c = conn.cursor()
-    try:
-        c.executemany(
-            f"""
-            INSERT INTO {table} ({", ".join([f"'{i}'" for i in df.columns])}) 
-            VALUES({(len(df.columns)*"? ")[:-1].replace(" ", ",")})
-            ON CONFLICT({unique_col}) DO UPDATE SET {", ".join([f"{i}=excluded.{i}" for i in df.columns])}""",
-            list(df.to_records(index=False)),
-        )
-        conn.commit()
-    except:
-        logging.error("error, closing connection", exc_info=True)
-    finally:
-        c.close()
-        conn.close()
-
-
-def get_last_scrobble_datetime():
-    conn = connect_to_db()
-    c = conn.cursor()
-    max_date = None
-    try:
-        c.execute("select max(datetime(date)) from scrobbles")
-        max_date = c.fetchone()[0]
-        max_date = datetime.datetime.strptime(max_date, "%Y-%m-%d %H:%M:%S")
-        max_date = pytz.UTC.localize(max_date)
-    except:
-        logging.error("error, closing connection", exc_info=True)
-    finally:
-        c.close()
-        conn.close()
-    logging.info(f"Last scrobble datetime in local DB: {max_date}")
-    return max_date
+    c.close()
+    conn.close()
