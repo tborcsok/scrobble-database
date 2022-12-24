@@ -23,10 +23,6 @@ def lastfm_get(params: RequestParams) -> requests.Response:
 
     response = requests.get(url, headers=headers, params=params, timeout=10)
     sleep(1)
+    response.raise_for_status()
 
-    if response.status_code == 200:
-        return response
-    else:
-        logging.warning("API status code %s", response.status_code)
-        logging.info("response content %s", response.content)
-        return response
+    return response

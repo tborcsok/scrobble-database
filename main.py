@@ -1,5 +1,4 @@
 import logging
-import time
 from datetime import datetime as dt
 from typing import Optional
 
@@ -37,7 +36,7 @@ def main(full: bool):
 
         last_timestamp_page = dt.fromtimestamp(min(int(r.date) for r in records))
         if last_timestamp and last_timestamp_page < last_timestamp:
-            logging.info("Loading data into database stopping with oldest scrobble at %s", last_timestamp_page)
+            logging.info("Sync with database finished, oldest inserted scrobble at %s", last_timestamp_page)
             break
 
 
