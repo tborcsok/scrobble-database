@@ -22,7 +22,7 @@ def lastfm_get(params: RequestParams) -> requests.Response:
     params["format"] = "json"
 
     response = requests.get(url, headers=headers, params=params, timeout=10)
-    sleep(2)
+    sleep(1)
 
     if response.status_code == 200:
         return response
