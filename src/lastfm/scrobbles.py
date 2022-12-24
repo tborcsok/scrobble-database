@@ -1,12 +1,10 @@
 import logging
-from dataclasses import dataclass
 from datetime import datetime as dt
 from typing import List, NamedTuple, Optional
 
-import pandas as pd
 from requests import Response
 
-from src import setup, utils
+from src import setup
 from src.lastfm import base
 
 # scrobble
@@ -22,7 +20,20 @@ class HistoryItem(NamedTuple):
     track_id: Optional[str]
 
 
-def get_history(page: Optional[int] = None, from_ts: Optional[dt] = None) -> Response:
+def get_total_pages() -> int:
+    """Get number of total pages of scrobble history
+
+    Parameters
+    ----------
+        from_ts: beginning timestamp of time range, UTC
+    """
+    response = get_scrobbles_page()
+    totalpages = int(response.json()["recenttracks"]["@attr"]["totalPages"])
+    logging.info("Total pages of scrobbles: %s", totalpages)
+    return totalpages
+
+
+def get_scrobbles_page(page: Optional[int] = None, from_ts: Optional[dt] = None) -> Response:
     """Get response from user.getRecentTracks service
 
     Params
@@ -47,31 +58,7 @@ def get_history(page: Optional[int] = None, from_ts: Optional[dt] = None) -> Res
     return response
 
 
-def get_total_pages():
-    """Get number of total pages of scrobble history
-
-    Parameters
-    ----------
-        from_ts: beginning timestamp of time range, UTC
-    """
-    response = get_history()
-    totalpages = int(response.json()["recenttracks"]["@attr"]["totalPages"])
-    logging.info("Total pages of scrobbles: %s", totalpages)
-    return totalpages
-
-
-json_extract = {
-    "date": ["date", "uts"],
-    "artist": ["artist", "#text"],
-    "album": ["album", "#text"],
-    "track": ["name"],
-    "artist_id": ["artist", "mbid"],
-    "album_id": ["album", "mbid"],
-    "track_id": ["mbid"],
-}
-
-
-def extract_page(response: Response) -> List[HistoryItem]:
+def extract_scrobbles_page(response: Response) -> List[HistoryItem]:
     scrobbles = response.json()["recenttracks"]["track"]
     # skip 'Now Playing' track if it is included in response
     if (
@@ -80,8 +67,18 @@ def extract_page(response: Response) -> List[HistoryItem]:
     ):
         scrobbles = scrobbles[1:]
 
-    records = list()
+    records = []
     for s in scrobbles:
-        records.append(HistoryItem(*[utils.recurGet(s, i) for i in json_extract.values()]))
+        records.append(
+            HistoryItem(
+                date=s["date"]["uts"],
+                artist=s["artist"]["#text"],
+                album=s["album"]["#text"],
+                track=s["name"],
+                artist_id=s["artist"]["mbid"],
+                album_id=s["album"]["mbid"],
+                track_id=s["mbid"],
+            )
+        )
 
     return records

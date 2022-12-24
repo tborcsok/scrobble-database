@@ -30,8 +30,8 @@ def main(full: bool):
     total_pages = scrobbles.get_total_pages()
     for p in tqdm(range(total_pages)):
 
-        response = scrobbles.get_history(page=p + 1, from_ts=last_timestamp)
-        records = scrobbles.extract_page(response)
+        response = scrobbles.get_scrobbles_page(page=p + 1, from_ts=last_timestamp)
+        records = scrobbles.extract_scrobbles_page(response)
         sql.insert_to_scrobbles(records)
 
         last_timestamp_page = dt.fromtimestamp(min(int(r.date) for r in records))
@@ -42,5 +42,10 @@ def main(full: bool):
 
 if __name__ == "__main__":
 
-    utils.custom_logger()
+    logging.basicConfig(
+        format="%(levelname)s:%(asctime)s:%(message)s",
+        level=logging.INFO,
+        datefmt="%Y-%m-%d %H:%M:%S%z",
+    )
+
     main()
