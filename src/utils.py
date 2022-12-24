@@ -22,16 +22,3 @@ def recurGet(d, ks):
     if result == "":
         result = None
     return result
-
-
-def dt2ts(datetime: dt, addone: bool = False) -> float:
-    """Converts a datetime object to UTC timestamp
-
-    naive datetime will be considered UTC.
-
-    optional: add 1 to timestamp
-    """
-    timestamp = datetime.timestamp()
-    if addone:
-        timestamp = timestamp + 1
-    return timestamp

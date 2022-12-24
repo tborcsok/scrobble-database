@@ -40,21 +40,21 @@ def get_history(page: Optional[int] = None, from_ts: Optional[dt] = None) -> Res
     if page is not None:
         params["page"] = page
     if from_ts is not None:
-        params["from"] = utils.dt2ts(from_ts, addone=True)
+        params["from"] = from_ts.timestamp()
 
     response = base.lastfm_get(params)
 
     return response
 
 
-def get_total_pages(from_ts: Optional[dt] = None):
+def get_total_pages():
     """Get number of total pages of scrobble history
 
     Parameters
     ----------
         from_ts: beginning timestamp of time range, UTC
     """
-    response = get_history(from_ts=from_ts)
+    response = get_history()
     totalpages = int(response.json()["recenttracks"]["@attr"]["totalPages"])
     logging.info("Total pages of scrobbles: %s", totalpages)
     return totalpages
