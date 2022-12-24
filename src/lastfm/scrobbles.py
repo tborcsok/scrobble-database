@@ -1,23 +1,13 @@
 import logging
 from datetime import datetime as dt
-from typing import List, NamedTuple, Optional
+from typing import List, Optional
 
 from requests import Response
 
-from src import setup, sql
+from src import schemas, setup, sql
 from src.lastfm import base
 
 # scrobble
-
-
-class HistoryItem(NamedTuple):
-    date: str
-    artist: str
-    album: str
-    track: str
-    artist_id: Optional[str]
-    album_id: Optional[str]
-    track_id: Optional[str]
 
 
 def get_total_pages() -> int:
@@ -65,7 +55,7 @@ def get_scrobbles_page(page: Optional[int] = None) -> Response:
     return response
 
 
-def extract_scrobbles_page(response: Response) -> List[HistoryItem]:
+def extract_scrobbles_page(response: Response) -> List[schemas.HistoryItem]:
     scrobbles = response.json()["recenttracks"]["track"]
     # skip 'Now Playing' track if it is included in response
     if (
@@ -77,7 +67,7 @@ def extract_scrobbles_page(response: Response) -> List[HistoryItem]:
     records = []
     for s in scrobbles:
         records.append(
-            HistoryItem(
+            schemas.HistoryItem(
                 date=s["date"]["uts"],
                 artist=s["artist"]["#text"],
                 album=s["album"]["#text"],

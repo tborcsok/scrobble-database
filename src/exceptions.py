@@ -1,0 +1,2 @@
+class LastfmError(Exception):
+    pass
