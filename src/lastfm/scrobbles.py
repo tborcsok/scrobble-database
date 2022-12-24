@@ -4,7 +4,7 @@ from typing import List, NamedTuple, Optional
 
 from requests import Response
 
-from src import setup
+from src import setup, sql
 from src.lastfm import base
 
 # scrobble
@@ -33,13 +33,22 @@ def get_total_pages() -> int:
     return totalpages
 
 
-def get_scrobbles_page(page: Optional[int] = None, from_ts: Optional[dt] = None) -> Response:
+def etl_scrobbles_page(page: int) -> dt:
+    response = get_scrobbles_page(page=page)
+    records = extract_scrobbles_page(response)
+    sql.insert_to_scrobbles(records)
+
+    last_timestamp_page = dt.fromtimestamp(min(int(r.date) for r in records))
+
+    return last_timestamp_page
+
+
+def get_scrobbles_page(page: Optional[int] = None) -> Response:
     """Get response from user.getRecentTracks service
 
     Params
     ----------
         page: page number to fetch
-        from_ts: beginning timestamp of time range, UTC
     """
     params: base.RequestParams = {
         "method": "user.getRecentTracks",
@@ -50,8 +59,6 @@ def get_scrobbles_page(page: Optional[int] = None, from_ts: Optional[dt] = None)
     }
     if page is not None:
         params["page"] = page
-    if from_ts is not None:
-        params["from"] = from_ts.timestamp()
 
     response = base.lastfm_get(params)
 

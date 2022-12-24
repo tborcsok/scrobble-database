@@ -8,17 +8,26 @@ from tqdm import tqdm
 
 load_dotenv()
 
-from src import sql, utils
+from src import sql
 from src.lastfm import scrobbles
 
 
-@click.command()
+@click.group()
+def cli():
+    logging.basicConfig(
+        format="%(levelname)s:%(asctime)s:%(message)s",
+        level=logging.INFO,
+        datefmt="%Y-%m-%d %H:%M:%S%z",
+    )
+
+
+@cli.command()
 @click.option(
     "--full",
     is_flag=True,
-    help="Collect all data available at Last.fm, do not stop data collection after reaching latest scrobble already written to DB",
+    help="Collect all scrobbles available at Last.fm, do not stop data collection after reaching latest scrobble already written to DB",
 )
-def main(full: bool):
+def scrobble(full: bool):
 
     last_timestamp: Optional[dt] = None
     if not full:
@@ -30,11 +39,8 @@ def main(full: bool):
     total_pages = scrobbles.get_total_pages()
     for p in tqdm(range(total_pages)):
 
-        response = scrobbles.get_scrobbles_page(page=p + 1, from_ts=last_timestamp)
-        records = scrobbles.extract_scrobbles_page(response)
-        sql.insert_to_scrobbles(records)
+        last_timestamp_page = scrobbles.etl_scrobbles_page(p + 1)
 
-        last_timestamp_page = dt.fromtimestamp(min(int(r.date) for r in records))
         if last_timestamp and last_timestamp_page < last_timestamp:
             logging.info("Sync with database finished, oldest inserted scrobble at %s", last_timestamp_page)
             break
@@ -42,10 +48,4 @@ def main(full: bool):
 
 if __name__ == "__main__":
 
-    logging.basicConfig(
-        format="%(levelname)s:%(asctime)s:%(message)s",
-        level=logging.INFO,
-        datefmt="%Y-%m-%d %H:%M:%S%z",
-    )
-
-    main()
+    cli()
