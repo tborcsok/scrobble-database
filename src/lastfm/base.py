@@ -1,4 +1,5 @@
 import logging
+from time import sleep
 from typing import Dict, Union
 
 import requests
@@ -21,4 +22,11 @@ def lastfm_get(params: RequestParams) -> requests.Response:
     params["format"] = "json"
 
     response = requests.get(url, headers=headers, params=params, timeout=10)
-    return response
+    sleep(2)
+
+    if response.status_code == 200:
+        return response
+    else:
+        logging.warning("API status code %s", response.status_code)
+        logging.info("response content %s", response.content)
+        return response
