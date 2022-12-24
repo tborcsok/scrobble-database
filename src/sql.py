@@ -1,4 +1,4 @@
-from typing import List
+from typing import Any, List
 
 import pandas as pd
 import psycopg2
@@ -22,6 +22,14 @@ def sql_query(query: str) -> pd.DataFrame:
         df = pd.read_sql(query, conn)
 
     return df
+
+
+def sql_fetchone(query: str) -> Any:
+    with connect_to_db() as conn:
+        with conn.cursor() as c:
+            c.execute(query)
+            res = c.fetchone()
+            return res
 
 
 def insert_to_scrobbles(records=List[scrobbles.HistoryItem]):
