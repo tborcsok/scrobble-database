@@ -16,3 +16,11 @@ class ArtistTagItem(NamedTuple):
     artist_id: Optional[str]
     tagname: str
     count: int
+
+
+class SimilarArtistItem(NamedTuple):
+    artist: str
+    artist_id: Optional[str]
+    similar_artist: str
+    similar_artist_id: Optional[str]
+    similarity: float

@@ -60,7 +60,7 @@ def insert_to_scrobbles(records=List[schemas.HistoryItem]):
 
 
 def insert_to_artist_tags(artist: str, records=List[schemas.ArtistTagItem]):
-    """Insert data to scrobbles table"""
+    """Insert data to artist tags table"""
     conn = connect_to_db()
     c = conn.cursor()
 
@@ -68,6 +68,30 @@ def insert_to_artist_tags(artist: str, records=List[schemas.ArtistTagItem]):
 
     c.executemany(
         ("insert into artist.tag(artist, artist_id, tagname, count) values(%s, %s, %s, %s)"),
+        records,
+    )
+
+    conn.commit()
+
+    c.close()
+    conn.close()
+
+
+def insert_to_similar_artist(artist: str, records=List[schemas.SimilarArtistItem]):
+    """Insert data to similar artists table"""
+    conn = connect_to_db()
+    c = conn.cursor()
+
+    c.execute("delete from artist.similar where artist=%s", (artist,))
+
+    # the data received from the API sometimes contains duplicate artist-artist pairs,
+    # so duplicates are skipped during insert
+    c.executemany(
+        (
+            "insert into artist.similar(artist, artist_id, similar_artist, similar_artist_id, similarity) "
+            "values(%s, %s, %s, %s, %s) "
+            "on conflict on constraint unique_similarartist do nothing "
+        ),
         records,
     )
 

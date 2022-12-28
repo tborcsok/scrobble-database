@@ -17,5 +17,15 @@ create table artist.tag (
     artist varchar(512) not null,
     artist_id varchar(64) null,
     tagname varchar(256) not null,
-    count int not null
+    count int not null,
+    constraint unique_artisttag primary key (artist, tagname)
+);
+
+create table artist.similar (
+    artist varchar(512) not null,
+    artist_id varchar(64) null,
+    similar_artist varchar(512) not null,
+    similar_artist_id varchar(64) null,
+    similarity real,
+    constraint unique_similarartist primary key (artist, similar_artist)
 );
