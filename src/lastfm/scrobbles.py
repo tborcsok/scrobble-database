@@ -3,8 +3,10 @@ from datetime import datetime as dt
 from typing import List, Optional
 
 from requests import Response
+from sqlalchemy.orm import Session
 
-from src import schemas, setup, sql
+from src import setup
+from src.dbschema import engine, models
 from src.lastfm import base
 
 # scrobble
@@ -26,9 +28,15 @@ def get_total_pages() -> int:
 def etl_scrobbles_page(page: int) -> dt:
     response = get_scrobbles_page(page=page)
     records = extract_scrobbles_page(response)
-    sql.insert_to_scrobbles(records)
 
-    last_timestamp_page = dt.fromtimestamp(min(int(r.date) for r in records))
+    with Session(engine) as session:
+
+        for record in records:
+            session.merge(record)
+
+        session.commit()
+
+    last_timestamp_page = min(record.ts for record in records)
 
     return last_timestamp_page
 
@@ -55,20 +63,18 @@ def get_scrobbles_page(page: Optional[int] = None) -> Response:
     return response
 
 
-def extract_scrobbles_page(response: Response) -> List[schemas.HistoryItem]:
+def extract_scrobbles_page(response: Response) -> List[models.Scrobble]:
     scrobbles = response.json()["recenttracks"]["track"]
+
     # skip 'Now Playing' track if it is included in response
-    if (
-        "@attr" in response.json()["recenttracks"]["track"][0].keys()
-        and response.json()["recenttracks"]["track"][0]["@attr"]["nowplaying"] == "true"
-    ):
+    if "@attr" in scrobbles[0].keys() and scrobbles[0]["@attr"]["nowplaying"] == "true":
         scrobbles = scrobbles[1:]
 
     records = []
     for s in scrobbles:
         records.append(
-            schemas.HistoryItem(
-                date=s["date"]["uts"],
+            models.Scrobble(
+                ts=dt.fromtimestamp(int(s["date"]["uts"])),
                 artist=s["artist"]["#text"],
                 album=s["album"]["#text"],
                 track=s["name"],

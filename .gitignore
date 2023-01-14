@@ -1,3 +1,5 @@
+lastfm.db
+
 .env
 poetry.lock
 
