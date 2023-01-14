@@ -5,13 +5,13 @@ from typing import Optional
 import click
 from tqdm import tqdm
 
-from src import sql
+from src import sql, util
 from src.lastfm import scrobbles
 
 
 @click.group("track")
 def trackgroup():
-    pass
+    util.raise_missing_db()
 
 
 @trackgroup.command("scrobbles")

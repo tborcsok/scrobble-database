@@ -1,13 +1,13 @@
 import click
 from tqdm import tqdm
 
-from src import sql
+from src import sql, util
 from src.lastfm import artists
 
 
 @click.group("artist")
 def artistgroup():
-    pass
+    util.raise_missing_db()
 
 
 @artistgroup.command("tags")
