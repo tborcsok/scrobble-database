@@ -1,8 +1,7 @@
-from pathlib import Path
-
 import click
 
 from src.dbschema import initialize
+from src.util import DB_PATH
 
 
 @click.group()
@@ -18,6 +17,6 @@ def init():
 
 @db.command()
 def recreate():
-    Path("lastfm.db").unlink(missing_ok=True)
+    DB_PATH.unlink(missing_ok=True)
 
     initialize.init_database()

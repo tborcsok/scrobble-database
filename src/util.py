@@ -1,10 +1,10 @@
-from pathlib import Path
+from src.setup import DB_PATH
 
 
 def check_db_exists() -> bool:
     """Check if database file exists"""
 
-    return Path("lastfm.db").exists()
+    return DB_PATH.exists()
 
 
 def raise_missing_db() -> None:
@@ -13,5 +13,5 @@ def raise_missing_db() -> None:
     Raises:
         FileNotFoundError if file does not exist
     """
-    if not Path("lastfm.db").exists():
+    if not DB_PATH.exists():
         raise FileNotFoundError('Database file not found. Run the "db init" command first to initialize the database!')

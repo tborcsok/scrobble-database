@@ -1,3 +1,5 @@
 from sqlalchemy import create_engine
 
-engine = create_engine("sqlite:///lastfm.db", echo=False)
+from src.setup import DB_FILE
+
+engine = create_engine(f"sqlite:///{DB_FILE}", echo=False)
