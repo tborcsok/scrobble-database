@@ -83,15 +83,21 @@ def extract_artist_similarartists(
 
     similarartists = resp.json()["similarartists"]["artist"]
 
-    records = [
-        models.ArtistSimilarity(
-            artist=artist,
-            artist_id=artist_id,
-            similar_artist=r["name"],
-            similar_artist_id=r.get("mbid"),
-            similarity=r["match"],
-        )
-        for r in similarartists
-    ]
+    records = []
+    similar_artists = set()
+    for r in similarartists:
+        if (sim_artist_name := r["name"]) not in similar_artists:
+
+            records.append(
+                models.ArtistSimilarity(
+                    artist=artist,
+                    artist_id=artist_id,
+                    similar_artist=sim_artist_name,
+                    similar_artist_id=r.get("mbid"),
+                    similarity=r["match"],
+                )
+            )
+
+            similar_artists.add(sim_artist_name)
 
     return records
