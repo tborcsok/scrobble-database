@@ -3,6 +3,7 @@ from enum import Enum
 
 import click
 
+from src import util
 from src.cli.artist import artisttag_collection, similar_artist_collection
 from src.cli.track import scrobble_collection
 
@@ -18,7 +19,7 @@ class PipelineSettings(Enum):
 
 @click.group("pipeline")
 def pipelinegroup():
-    pass
+    util.raise_missing_db()
 
 
 @pipelinegroup.command("sync")
