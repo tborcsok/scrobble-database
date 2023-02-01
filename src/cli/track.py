@@ -5,7 +5,8 @@ from typing import Optional
 import click
 from tqdm import tqdm
 
-from src import sql, util
+from src import util
+from src.dbschema.models import Scrobble
 from src.lastfm import scrobbles
 
 
@@ -24,7 +25,8 @@ def scrobble_collection(full: bool):
 
     last_timestamp: Optional[dt] = None
     if not full:
-        last_timestamp = sql.sql_fetchone("select max(date) from track.scrobble")[0]
+        last_timestamp = Scrobble.get_last_timestamp()
+
         logging.info("Most recent scrobble timestamp in db is %s", last_timestamp)
     else:
         logging.info("Loading all data from Last.fm")

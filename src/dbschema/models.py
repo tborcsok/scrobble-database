@@ -1,8 +1,10 @@
 from datetime import datetime as dt
-from typing import Optional
+from typing import List, Optional
 
-from sqlalchemy import String
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy import String, func, select
+from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column
+
+from src.dbschema import engine
 
 
 class Base(DeclarativeBase):
@@ -24,6 +26,36 @@ class Scrobble(Base):
     def __repr__(self) -> str:
         return f"({self.ts}, {self.artist}, {self.album}, {self.track})"
 
+    @classmethod
+    def get_last_timestamp(cls) -> Optional[dt]:
+
+        stmt = select(func.max(cls.ts))
+
+        with Session(engine) as session:
+            last_timestamp: Optional[dt] = session.scalars(stmt).first()
+
+        return last_timestamp
+
+    @classmethod
+    def get_artist_list(cls) -> List[str]:
+
+        stmt = select(cls.artist).group_by(cls.artist).order_by(func.count().desc())
+
+        with Session(engine) as session:
+            artist_list: List[str] = session.scalars(stmt).all()
+
+        return artist_list
+
+    @classmethod
+    def get_artist_id(cls, artist: str) -> Optional[str]:
+
+        stmt = select(cls.artist_id).where(cls.artist == artist).order_by(cls.artist_id.desc())
+
+        with Session(engine) as session:
+            artist_id: Optional[str] = session.scalars(stmt).first()
+
+        return artist_id
+
 
 class ArtistTag(Base):
     __tablename__ = "tag"
@@ -36,6 +68,16 @@ class ArtistTag(Base):
 
     def __repr__(self) -> str:
         return f"({self.artist}, {self.tagname}, {self.count})"
+
+    @classmethod
+    def get_artist_list(cls) -> List[str]:
+
+        stmt = select(cls.artist).group_by(cls.artist)
+
+        with Session(engine) as session:
+            artist_list: List[str] = session.scalars(stmt).all()
+
+        return artist_list
 
 
 class ArtistSimilarity(Base):
@@ -50,3 +92,13 @@ class ArtistSimilarity(Base):
 
     def __repr__(self) -> str:
         return f"({self.artist}, {self.similar_artist}, {self.similarity})"
+
+    @classmethod
+    def get_artist_list(cls) -> List[str]:
+
+        stmt = select(cls.artist).group_by(cls.artist)
+
+        with Session(engine) as session:
+            artist_list: List[str] = session.scalars(stmt).all()
+
+        return artist_list

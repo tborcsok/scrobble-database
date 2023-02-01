@@ -1,7 +1,8 @@
 import click
 from tqdm import tqdm
 
-from src import sql, util
+from src import util
+from src.dbschema import models
 from src.lastfm import artists
 
 
@@ -17,29 +18,16 @@ def artistgroup():
     help="Collect all artist tag info available at Last.fm, not just new artists",
 )
 def artisttag_collection(full: bool):
-    if full:
-        unique_artists = sql.sql_fetchall(
-            (
-                "select d.artist, d.artist_id from ( "
-                "	select distinct on (artist) artist, artist_id from track.scrobble "
-                ") d join ( "
-                "	select artist, count(*) as play_count from track.scrobble "
-                "	where artist is not null "
-                "	group by artist "
-                ") n using (artist) "
-                "order by n.play_count desc "
-            )
-        )
-    else:
-        unique_artists = sql.sql_fetchall(
-            (
-                "select d.artist, d.artist_id from ( "
-                "	select distinct on (artist) artist, artist_id from track.scrobble "
-                ") d left join artist.tag t on d.artist = t.artist where t.artist is null "
-            )
-        )
 
-    for artist, artist_id in tqdm(unique_artists):
+    artist_list = models.Scrobble.get_artist_list()
+
+    if not full:
+        artists_w_tag_info = models.ArtistTag.get_artist_list()
+        artist_list = list(set(artist_list) - set(artists_w_tag_info))
+
+    for artist in tqdm(artist_list):
+        artist_id = models.Scrobble.get_artist_id(artist)
+
         artists.etl_artist_toptags(artist=artist, artist_id=artist_id)
 
 
@@ -50,27 +38,14 @@ def artisttag_collection(full: bool):
     help="Collect all similar artist info available at Last.fm, not just new artists",
 )
 def similar_artist_collection(full: bool):
-    if full:
-        unique_artists = sql.sql_fetchall(
-            (
-                "select d.artist, d.artist_id from ( "
-                "	select distinct on (artist) artist, artist_id from track.scrobble "
-                ") d join ( "
-                "	select artist, count(*) as play_count from track.scrobble "
-                "	where artist is not null "
-                "	group by artist "
-                ") n using (artist) "
-                "order by n.play_count desc "
-            )
-        )
-    else:
-        unique_artists = sql.sql_fetchall(
-            (
-                "select d.artist, d.artist_id from ( "
-                "	select distinct on (artist) artist, artist_id from track.scrobble "
-                ") d left join artist.similar s on d.artist = s.artist where s.artist is null "
-            )
-        )
 
-    for artist, artist_id in tqdm(unique_artists):
+    artist_list = models.Scrobble.get_artist_list()
+
+    if not full:
+        artists_w_tag_info = models.ArtistSimilarity.get_artist_list()
+        artist_list = list(set(artist_list) - set(artists_w_tag_info))
+
+    for artist in tqdm(artist_list):
+        artist_id = models.Scrobble.get_artist_id(artist)
+
         artists.etl_similar_artist(artist=artist, artist_id=artist_id)
