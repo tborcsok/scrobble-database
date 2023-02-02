@@ -32,10 +32,10 @@ def get_artist_toptags(artist: str, artist_id: Optional[str] = None) -> requests
         params["mbid"] = artist_id
 
     try:
-        response = base.lastfm_get_w_caching(params)
+        response = base.lastfm_get(params, cached=True)
     except exceptions.LastfmError:
         del params["mbid"]
-        response = base.lastfm_get_w_caching(params)
+        response = base.lastfm_get(params, cached=True)
 
     return response
 
@@ -71,10 +71,10 @@ def get_artist_similarartists(artist: str, artist_id: Optional[str] = None) -> r
         params["mbid"] = artist_id
 
     try:
-        response = base.lastfm_get_w_caching(params)
+        response = base.lastfm_get(params, cached=True)
     except exceptions.LastfmError:
         del params["mbid"]
-        response = base.lastfm_get_w_caching(params)
+        response = base.lastfm_get(params, cached=True)
 
     return response
 
