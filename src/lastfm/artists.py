@@ -14,12 +14,13 @@ def etl_artist_toptags(artist: str, artist_id: Optional[str] = None):
     resp = get_artist_toptags(artist=artist, artist_id=artist_id)
     records = extract_artist_toptags(artist=artist, artist_id=artist_id, resp=resp)
 
-    with Session(engine) as session:
-        session.execute(delete(models.ArtistTag).where(models.ArtistTag.artist == artist))
+    if records:
+        with Session(engine) as session:
+            session.execute(delete(models.ArtistTag).where(models.ArtistTag.artist == artist))
 
-        session.add_all(records)
+            session.add_all(records)
 
-        session.commit()
+            session.commit()
 
 
 def get_artist_toptags(artist: str, artist_id: Optional[str] = None) -> requests.Response:
@@ -52,12 +53,13 @@ def etl_similar_artist(artist: str, artist_id: Optional[str] = None):
     resp = get_artist_similarartists(artist=artist, artist_id=artist_id)
     records = extract_artist_similarartists(artist=artist, artist_id=artist_id, resp=resp)
 
-    with Session(engine) as session:
-        session.execute(delete(models.ArtistSimilarity).where(models.ArtistSimilarity.artist == artist))
+    if records:
+        with Session(engine) as session:
+            session.execute(delete(models.ArtistSimilarity).where(models.ArtistSimilarity.artist == artist))
 
-        session.add_all(records)
+            session.add_all(records)
 
-        session.commit()
+            session.commit()
 
 
 def get_artist_similarartists(artist: str, artist_id: Optional[str] = None) -> requests.Response:
