@@ -6,6 +6,7 @@ from typing import Dict, Union
 import requests
 import requests_cache
 from requests_cache.models.response import CachedResponse
+from tenacity import retry, retry_if_exception_message, stop_after_attempt, wait_fixed
 
 from src import exceptions, setup
 
@@ -34,13 +35,26 @@ def lastfm_get(params: RequestParams, cached: bool = False) -> requests.Response
         )
     )
 
+    response = make_request(url=url, headers=headers, params=params, session=session)
+
+    # some requests are successful, but contain error info in the JSON
+    if "error" in response.json():
+        raise exceptions.LastfmError("Request error %s" % response.json())
+
+    return response
+
+
+@retry(retry=retry_if_exception_message(match="500"), wait=wait_fixed(5), stop=stop_after_attempt(3))
+def make_request(
+    url: str, headers: dict[str, str], params: dict[str, str], session: requests.Session | requests_cache.CachedSession
+) -> requests.Response | CachedResponse:
+    """Request function with retry logic for HTTP error 500 Internal Server Error"""
+
     response = session.get(url, headers=headers, params=params, timeout=10)
+
     if not isinstance(response, CachedResponse):
         sleep(1)
 
     response.raise_for_status()
-
-    if "error" in response.json():
-        raise exceptions.LastfmError("Request error %s" % response.json())
 
     return response
