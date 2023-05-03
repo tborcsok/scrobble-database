@@ -12,6 +12,7 @@ from src.lastfm import scrobbles
 
 @click.group("track")
 def trackgroup():
+    """Collect data about tracks"""
     util.raise_missing_db()
 
 

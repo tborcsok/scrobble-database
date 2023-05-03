@@ -19,6 +19,7 @@ class PipelineSettings(Enum):
 
 @click.group("pipeline")
 def pipelinegroup():
+    """Data collection pipeline that collects all data types"""
     util.raise_missing_db()
 
 

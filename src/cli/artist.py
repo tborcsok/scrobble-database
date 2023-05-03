@@ -8,6 +8,7 @@ from src.lastfm import artists
 
 @click.group("artist")
 def artistgroup():
+    """Collect data about artists"""
     util.raise_missing_db()
 
 

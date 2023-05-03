@@ -6,6 +6,7 @@ from src.util import DB_PATH
 
 @click.group()
 def db():
+    """Database maintenance functions"""
     pass
 
 
