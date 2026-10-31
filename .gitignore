@@ -1,7 +1,6 @@
 lastfm.db
 
 .env
-poetry.lock
 
 __pycache__
 .ipynb_checkpoints

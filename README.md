@@ -10,9 +10,9 @@ The application reads this info from a text file in this folder named `.env`. Th
 
 ## Installation and usage
 
-To run the application, prepare a Python environment with the dependencies defined in `pyproject.toml`. The tool for environment management used in this repository is Poetry. To prepare the environment run `poetry install`.
+To run the application, prepare a Python environment with the dependencies defined in `pyproject.toml`. The tool for environment management used in this repository is uv. To prepare the virtual environment run `uv sync`.
 
-To run the CLI, activate the environment with e.g. the `poetry shell` command, then run the application with `python main.py --help` to see the available commands.
+Run `uv run main.py --help` to see the available commands.
 
 ```
 Usage: main.py [OPTIONS] COMMAND [ARGS]...
